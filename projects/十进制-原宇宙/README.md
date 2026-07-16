@@ -10,6 +10,12 @@
 
 一个 3D 交互地球，展示所有 ERC-8004 注册的 AI Agent 的实时分布、状态和能力。用户可在地球上发现、对话、雇佣 Agent，所有交易通过 x402 无 gas 微支付完成。
 
+## 团队介绍
+
+| 角色 | 姓名 | 职责 |
+|------|------|------|
+| 独立开发者 | 十进制 | 全栈开发、产品设计、智能体架构 |
+
 ---
 
 ## 核心创新
@@ -122,11 +128,9 @@ EIP-3009 gasless 签名 → 交易上链 → Agent 提供服务
 
 ## MCP 服务说明
 
-### 1. Earth Data MCP Server
+### Earth Data MCP Server
 
-提供 Agent 发现、通信、支付、注册的核心后端。
-
-**端口:** `3001`
+提供 Agent 发现、通信、支付、注册的核心后端。端口: `3001`
 
 **工具列表:**
 
@@ -138,33 +142,28 @@ EIP-3009 gasless 签名 → 交易上链 → Agent 提供服务
 | `register_agent_onchain` | 注册新 Agent 到 ERC-8004 | name, wallet, skills |
 | `get_earth_data` | 获取地理/环境数据 | lat, lng, dataType |
 
-### 2. A2A Protocol（Agent-to-Agent）
-
+### A2A Protocol（Agent-to-Agent）
 - **Agent Card:** `/.well-known/agent-card.json`
 - **Protocol:** JSON-RPC 2.0
 - **Methods:** `message/send`, `tasks/get`, `tasks/cancel`
-- **Streaming:** SSE (Server-Sent Events) 支持
 
 ---
 
 ## 安装与运行指南
 
 ### 前置要求
-
 - Node.js >= 18
 - npm
 - Git
-- 一个以太坊钱包（可选，用于链上交互）
 
 ### 快速开始
 
 ```bash
 # 1. 克隆仓库
-git clone https://github.com/[你的团队名]/OriginVerse.git
-cd OriginVerse
+git clone https://github.com/yyz19861001-commits/hackathon6.git
+cd hackathon6/projects/十进制-原宇宙
 
 # 2. 安装依赖
-npm install
 cd frontend && npm install && cd ..
 cd mcp-servers/earth-data-mcp && npm install && cd ../..
 
@@ -177,16 +176,6 @@ npm run dev:frontend
 # 终端 2: 前端在 http://localhost:5173
 
 # 5. 在浏览器中打开 http://localhost:5173
-```
-
-### 链上交互（可选）
-
-```bash
-# 模拟批量注册 Agent 到 ERC-8004
-node contracts/erc-8004/register-agent.js --batch
-
-# 模拟 x402 微支付
-node contracts/x402/x402-client.js 0x8004:0x8004001 0.001
 ```
 
 ### Demo 演示流程（一键展示）
@@ -226,29 +215,6 @@ node contracts/x402/x402-client.js 0x8004:0x8004001 0.001
 | 微支付 | x402 + EIP-3009 (gasless USDC) |
 | 智能体通信 | A2A Protocol (JSON-RPC 2.0) |
 | 智能体能力 | MCP (Model Context Protocol) |
-| 部署 | 前端: Vercel / 后端: Railway or Docker |
-
----
-
-## 团队介绍
-
-> *（填写团队信息）*
-
-| 角色 | 姓名 | 职责 |
-|------|------|------|
-| ... | ... | ... |
-
----
-
-## 时间线（黑客松冲刺）
-
-| 日期 | 里程碑 |
-|------|--------|
-| Day 1 | Three.js 地球 + Agent 标记系统完成 |
-| Day 2 | MCP Server + A2A 通信 + 聊天交互 |
-| Day 3 | ERC-8004 集成 + x402 支付集成 |
-| Day 4 | 多 Agent 协作 + 系统打磨 |
-| Day 5 | README 完善 + Demo 视频录制 + 提交 |
 
 ---
 
