@@ -111,57 +111,26 @@ export class AgentMarkers {
       const quat = new THREE.Quaternion().setFromUnitVectors(up, pos.clone().normalize());
       group.quaternion.copy(quat);
 
-      // Glow ring (bigger for visibility)
-      const ringGeo = new THREE.RingGeometry(0.12, 0.22, 24);
-      const ringMat = new THREE.MeshBasicMaterial({
-        color: agent.status === 'online' ? 0x00ff88 :
-               agent.status === 'busy' ? 0xffaa00 : 0x555555,
-        transparent: true,
-        opacity: 0.9,
-        side: THREE.DoubleSide,
-        depthWrite: false,
-      });
-      const ring = new THREE.Mesh(ringGeo, ringMat);
-      ring.position.z = 0.02;
-      group.add(ring);
-
-      // Center dot (bigger)
-      const dotGeo = new THREE.SphereGeometry(agent.status === 'online' ? 0.08 : 0.06, 12, 12);
-      const dotMat = new THREE.MeshBasicMaterial({
-        color: agent.status === 'online' ? 0x00ff88 :
-               agent.status === 'busy' ? 0xffaa00 : 0x555555,
-      });
+      // Simple glowing dot
+      const dotGeo = new THREE.SphereGeometry(0.18, 16, 16);
+      const dotCol = agent.status === 'online' ? 0x00ffaa :
+                     agent.status === 'busy' ? 0xffaa00 : 0x555555;
+      const dotMat = new THREE.MeshBasicMaterial({ color: dotCol });
       const dot = new THREE.Mesh(dotGeo, dotMat);
       group.add(dot);
 
-      // Pulse ring (animated)
-      const pulseGeo = new THREE.RingGeometry(0.14, 0.18, 24);
-      const pulseMat = new THREE.MeshBasicMaterial({
+      // Outer glow
+      const glowGeo = new THREE.SphereGeometry(0.30, 16, 16);
+      const glowMat = new THREE.MeshBasicMaterial({
         color: 0x00aaff,
         transparent: true,
-        opacity: 0.0,
-        side: THREE.DoubleSide,
-        depthWrite: false,
+        opacity: 0.25,
       });
-      const pulseRing = new THREE.Mesh(pulseGeo, pulseMat);
-      pulseRing.position.z = 0.01;
-      group.add(pulseRing);
-
-      // Glow sprite for extra visibility
-      const spriteMap = this._createGlowTexture();
-      const spriteMat = new THREE.SpriteMaterial({
-        map: spriteMap,
-        transparent: true,
-        opacity: 0.3,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false,
-      });
-      const sprite = new THREE.Sprite(spriteMat);
-      sprite.scale.set(0.6, 0.6, 1);
-      group.add(sprite);
+      const glow = new THREE.Mesh(glowGeo, glowMat);
+      group.add(glow);
 
       // Store data
-      group.userData = { agent, index, pulseRing, pulsePhase: Math.random() * Math.PI * 2, spriteMat, sprite };
+      group.userData = { agent, index, glow, pulsePhase: Math.random() * Math.PI * 2 };
 
       if (this.parentGroup) {
         this.parentGroup.add(group);
@@ -172,34 +141,15 @@ export class AgentMarkers {
     });
   }
 
-  _createGlowTexture() {
-    const canvas = document.createElement('canvas');
-    canvas.width = 64;
-    canvas.height = 64;
-    const ctx = canvas.getContext('2d');
-    const gradient = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
-    gradient.addColorStop(0, 'rgba(0, 200, 255, 0.6)');
-    gradient.addColorStop(0.3, 'rgba(0, 150, 255, 0.3)');
-    gradient.addColorStop(0.7, 'rgba(0, 100, 255, 0.1)');
-    gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, 64, 64);
-    const texture = new THREE.CanvasTexture(canvas);
-    return texture;
-  }
-
   update(time) {
     this.markers.forEach(marker => {
-      const { agent, pulseRing, pulsePhase } = marker.userData;
+      const { agent, glow, pulsePhase } = marker.userData;
       const pulse = Math.sin(time * 2 + pulsePhase) * 0.5 + 0.5;
 
-      // Pulse animation
-      const scale = 1 + pulse * 0.5;
-      pulseRing.scale.set(scale, scale, 1);
-      pulseRing.material.opacity = pulse * 0.4;
-
-      // Idle float
-      marker.position.y += Math.sin(time * 1.5 + pulsePhase) * 0.0001;
+      // Pulse glow
+      const scale = 1 + pulse * 0.4;
+      glow.scale.set(scale, scale, 1);
+      glow.material.opacity = 0.15 + pulse * 0.2;
     });
   }
 
