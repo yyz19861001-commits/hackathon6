@@ -5,8 +5,9 @@ import * as THREE from 'three';
  * Each marker = a glowing point on the earth representing an ERC-8004 registered AI agent
  */
 export class AgentMarkers {
-  constructor(scene, earthRadius = 5.1) {
+  constructor(scene, earthRadius = 5.1, parentGroup = null) {
     this.scene = scene;
+    this.parentGroup = parentGroup; // If set, markers rotate with earth
     this.earthRadius = earthRadius;
     this.agents = [];
     this.markers = [];
@@ -93,9 +94,11 @@ export class AgentMarkers {
 
   _createMarkers() {
     // Clear existing
-    this.markers.forEach(m => this.scene.remove(m));
+    this.markers.forEach(m => {
+      if (this.parentGroup) this.parentGroup.remove(m);
+      else this.scene.remove(m);
+    });
     this.markers = [];
-    console.log('[Agents] Creating', this.agents.length, 'markers');
 
     this.agents.forEach((agent, index) => {
       const pos = this._latLngToPosition(agent.lat, agent.lng, this.earthRadius);
@@ -160,10 +163,12 @@ export class AgentMarkers {
       // Store data
       group.userData = { agent, index, pulseRing, pulsePhase: Math.random() * Math.PI * 2, spriteMat, sprite };
 
-      this.scene.add(group);
+      if (this.parentGroup) {
+        this.parentGroup.add(group);
+      } else {
+        this.scene.add(group);
+      }
       this.markers.push(group);
-
-      console.log(`[Agents] Marker ${index}: ${agent.name} at (${agent.lat}, ${agent.lng})`);
     });
   }
 

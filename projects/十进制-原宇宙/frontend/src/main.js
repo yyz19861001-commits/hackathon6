@@ -28,7 +28,7 @@ scene.add(fillLight);
 
 // ---- Objects ----
 const earth = new Earth(scene);
-const agentMarkers = new AgentMarkers(scene);
+const agentMarkers = new AgentMarkers(scene, 5.1, earth.mesh);
 const api = new API();
 
 camera.position.set(0, 2, 14);
