@@ -111,8 +111,8 @@ export class AgentMarkers {
       const quat = new THREE.Quaternion().setFromUnitVectors(up, pos.clone().normalize());
       group.quaternion.copy(quat);
 
-      // Simple glowing dot
-      const dotGeo = new THREE.SphereGeometry(0.18, 16, 16);
+      // Simple glowing dot (80% smaller)
+      const dotGeo = new THREE.SphereGeometry(0.036, 12, 12);
       const dotCol = agent.status === 'online' ? 0x00ffaa :
                      agent.status === 'busy' ? 0xffaa00 : 0x555555;
       const dotMat = new THREE.MeshBasicMaterial({ color: dotCol });
@@ -120,7 +120,7 @@ export class AgentMarkers {
       group.add(dot);
 
       // Outer glow
-      const glowGeo = new THREE.SphereGeometry(0.30, 16, 16);
+      const glowGeo = new THREE.SphereGeometry(0.060, 12, 12);
       const glowMat = new THREE.MeshBasicMaterial({
         color: 0x00aaff,
         transparent: true,
