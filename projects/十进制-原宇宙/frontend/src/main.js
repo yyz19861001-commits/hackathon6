@@ -204,17 +204,19 @@ window.addEventListener('resize', () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-// ---- Load Agents ----
-(async () => {
-  const backendData = await api.fetchAgents();
-  await agentMarkers.load(backendData);
+// ---- Load Agents (immediate from demo data, then try backend) ----
+agentMarkers.load();  // Load demo data immediately
+agentMarkers.onSelect = (agent) => {
+  selectedAgent = agent;
+  showAgentCard(agent);
+};
 
-  // Click callback
-  agentMarkers.onSelect = (agent) => {
-    selectedAgent = agent;
-    showAgentCard(agent);
-  };
-})();
+// Try backend in background (silent)
+api.fetchAgents().then(backendData => {
+  if (backendData && backendData.agents) {
+    agentMarkers.load(backendData.agents);
+  }
+}).catch(() => {});
 // ---- Render Loop ----
 function animate(time) {
   requestAnimationFrame(animate);

@@ -93,8 +93,9 @@ export class AgentMarkers {
 
   _createMarkers() {
     // Clear existing
-    this.markers.forEach(m => this.scene.remove(m.group));
+    this.markers.forEach(m => this.scene.remove(m));
     this.markers = [];
+    console.log('[Agents] Creating', this.agents.length, 'markers');
 
     this.agents.forEach((agent, index) => {
       const pos = this._latLngToPosition(agent.lat, agent.lng, this.earthRadius);
@@ -107,31 +108,31 @@ export class AgentMarkers {
       const quat = new THREE.Quaternion().setFromUnitVectors(up, pos.clone().normalize());
       group.quaternion.copy(quat);
 
-      // Glow ring
-      const ringGeo = new THREE.RingGeometry(0.06, 0.12, 16);
+      // Glow ring (bigger for visibility)
+      const ringGeo = new THREE.RingGeometry(0.12, 0.22, 24);
       const ringMat = new THREE.MeshBasicMaterial({
         color: agent.status === 'online' ? 0x00ff88 :
-               agent.status === 'busy' ? 0xffaa00 : 0x444444,
+               agent.status === 'busy' ? 0xffaa00 : 0x555555,
         transparent: true,
-        opacity: 0.8,
+        opacity: 0.9,
         side: THREE.DoubleSide,
         depthWrite: false,
       });
       const ring = new THREE.Mesh(ringGeo, ringMat);
-      ring.position.z = 0.01;
+      ring.position.z = 0.02;
       group.add(ring);
 
-      // Center dot
-      const dotGeo = new THREE.SphereGeometry(agent.status === 'online' ? 0.05 : 0.035, 8, 8);
+      // Center dot (bigger)
+      const dotGeo = new THREE.SphereGeometry(agent.status === 'online' ? 0.08 : 0.06, 12, 12);
       const dotMat = new THREE.MeshBasicMaterial({
         color: agent.status === 'online' ? 0x00ff88 :
-               agent.status === 'busy' ? 0xffaa00 : 0x444444,
+               agent.status === 'busy' ? 0xffaa00 : 0x555555,
       });
       const dot = new THREE.Mesh(dotGeo, dotMat);
       group.add(dot);
 
       // Pulse ring (animated)
-      const pulseGeo = new THREE.RingGeometry(0.08, 0.10, 16);
+      const pulseGeo = new THREE.RingGeometry(0.14, 0.18, 24);
       const pulseMat = new THREE.MeshBasicMaterial({
         color: 0x00aaff,
         transparent: true,
@@ -140,15 +141,46 @@ export class AgentMarkers {
         depthWrite: false,
       });
       const pulseRing = new THREE.Mesh(pulseGeo, pulseMat);
-      pulseRing.position.z = 0.02;
+      pulseRing.position.z = 0.01;
       group.add(pulseRing);
 
+      // Glow sprite for extra visibility
+      const spriteMap = this._createGlowTexture();
+      const spriteMat = new THREE.SpriteMaterial({
+        map: spriteMap,
+        transparent: true,
+        opacity: 0.3,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      });
+      const sprite = new THREE.Sprite(spriteMat);
+      sprite.scale.set(0.6, 0.6, 1);
+      group.add(sprite);
+
       // Store data
-      group.userData = { agent, index, pulseRing, pulsePhase: Math.random() * Math.PI * 2 };
+      group.userData = { agent, index, pulseRing, pulsePhase: Math.random() * Math.PI * 2, spriteMat, sprite };
 
       this.scene.add(group);
       this.markers.push(group);
+
+      console.log(`[Agents] Marker ${index}: ${agent.name} at (${agent.lat}, ${agent.lng})`);
     });
+  }
+
+  _createGlowTexture() {
+    const canvas = document.createElement('canvas');
+    canvas.width = 64;
+    canvas.height = 64;
+    const ctx = canvas.getContext('2d');
+    const gradient = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+    gradient.addColorStop(0, 'rgba(0, 200, 255, 0.6)');
+    gradient.addColorStop(0.3, 'rgba(0, 150, 255, 0.3)');
+    gradient.addColorStop(0.7, 'rgba(0, 100, 255, 0.1)');
+    gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, 64, 64);
+    const texture = new THREE.CanvasTexture(canvas);
+    return texture;
   }
 
   update(time) {
