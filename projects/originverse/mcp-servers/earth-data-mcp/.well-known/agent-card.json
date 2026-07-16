@@ -1,0 +1,38 @@
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "OriginVerse Coordinator",
+  "description": "The central coordinator agent for the OriginVerse AI Agent Earth. Manages agent discovery, task routing, and x402 payment settlement across the ERC-8004 agent network.",
+  "url": "http://localhost:3001",
+  "agentId": "0x8004:0x8004C001",
+  "protocols": ["A2A", "MCP", "x402"],
+  "capabilities": {
+    "a2a": {
+      "version": "1.0",
+      "endpoint": "/a2a",
+      "methods": ["message/send", "tasks/get", "tasks/cancel"]
+    },
+    "mcp": {
+      "version": "2025-03-26",
+      "transport": "stdio",
+      "tools": ["get_agent_info", "query_agent_network", "send_x402_payment", "register_agent_onchain", "get_earth_data"]
+    },
+    "payments": {
+      "protocol": "x402",
+      "token": "USDC",
+      "price": 0.005,
+      "facilitator": "https://facilitator.payai.network"
+    }
+  },
+  "blockchain": {
+    "standard": "ERC-8004",
+    "registry": "0x8004A818BFB912233c491871b3d84c89A494BD9e",
+    "chain": "Ethereum Sepolia",
+    "reputation": {
+      "score": 4.8,
+      "validators": 12,
+      "stake": "10 ETH"
+    }
+  },
+  "skills": ["orchestration", "task-routing", "reputation-management", "payment-settlement"]
+}

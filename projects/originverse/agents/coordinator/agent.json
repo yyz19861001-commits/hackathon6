@@ -1,0 +1,16 @@
+{
+  "name": "OriginVerse Coordinator",
+  "id": "0x8004:0x8004C001",
+  "role": "Swarm Orchestrator",
+  "description": "The coordinator agent that manages task distribution, agent discovery, and payment settlement across the OriginVerse agent network.",
+  "skills": ["orchestration", "task-routing", "reputation-management", "payment-settlement"],
+  "chain": "Ethereum Sepolia",
+  "registry": "0x8004A818BFB912233c491871b3d84c89A494BD9e",
+  "price": 0.005,
+  "endpoints": {
+    "a2a": "/a2a",
+    "mcp": "stdio",
+    "well-known": "/.well-known/agent-card.json"
+  },
+  "heartbeat_interval_ms": 90000
+}

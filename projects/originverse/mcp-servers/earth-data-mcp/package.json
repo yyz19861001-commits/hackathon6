@@ -1,0 +1,14 @@
+{
+  "name": "earth-data-mcp-server",
+  "version": "1.0.0",
+  "private": true,
+  "description": "OriginVerse Earth Data MCP Server - Agent registry, chat, and x402 payments",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "cors": "^2.8.5"
+  }
+}

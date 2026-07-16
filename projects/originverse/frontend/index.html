@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>原宇宙 - AI Agent Earth</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { overflow: hidden; background: #000; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    #app { width: 100vw; height: 100vh; }
+
+    /* HUD overlay */
+    #hud {
+      position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+      color: #fff; text-align: center; z-index: 10;
+      pointer-events: none;
+    }
+    #hud h1 {
+      font-size: 24px; font-weight: 700;
+      text-shadow: 0 0 20px rgba(0, 200, 255, 0.5);
+      letter-spacing: 4px;
+    }
+    #hud .subtitle {
+      font-size: 13px; opacity: 0.6; margin-top: 4px;
+      letter-spacing: 2px;
+    }
+
+    #stats {
+      position: fixed; bottom: 20px; left: 20px; z-index: 10;
+      color: rgba(255,255,255,0.5); font-size: 12px; font-family: monospace;
+    }
+
+    /* Agent card popup */
+    #agent-card {
+      position: fixed; right: -400px; top: 50%; transform: translateY(-50%);
+      width: 360px; background: rgba(10, 10, 30, 0.92);
+      backdrop-filter: blur(20px); border: 1px solid rgba(0, 200, 255, 0.3);
+      border-radius: 16px; padding: 28px; z-index: 20;
+      transition: right 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      color: #fff;
+      box-shadow: 0 0 60px rgba(0, 100, 255, 0.15);
+    }
+    #agent-card.open { right: 30px; }
+    #agent-card .close {
+      position: absolute; top: 12px; right: 16px;
+      background: none; border: none; color: rgba(255,255,255,0.4);
+      font-size: 22px; cursor: pointer; transition: color 0.2s;
+    }
+    #agent-card .close:hover { color: #fff; }
+    #agent-card .name { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+    #agent-card .role { font-size: 14px; color: rgba(0, 200, 255, 0.8); margin-bottom: 12px; }
+    #agent-card .reputation {
+      display: inline-block; padding: 3px 10px; border-radius: 20px;
+      background: rgba(0, 200, 255, 0.15); font-size: 13px; margin-bottom: 16px;
+    }
+    #agent-card .section { margin-bottom: 14px; }
+    #agent-card .section-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.4); margin-bottom: 6px; }
+    #agent-card .skills { display: flex; flex-wrap: wrap; gap: 6px; }
+    #agent-card .skill-tag {
+      padding: 4px 10px; border-radius: 12px; background: rgba(255,255,255,0.08);
+      font-size: 12px; border: 1px solid rgba(255,255,255,0.1);
+    }
+    #agent-card .onchain-id {
+      font-size: 11px; color: rgba(255,255,255,0.35); font-family: monospace;
+      word-break: break-all;
+    }
+    #agent-card .actions { margin-top: 18px; display: flex; gap: 10px; }
+    #agent-card .btn {
+      flex: 1; padding: 10px; border-radius: 10px; border: none;
+      font-size: 14px; font-weight: 600; cursor: pointer;
+      transition: all 0.2s;
+    }
+    #agent-card .btn-chat {
+      background: linear-gradient(135deg, #0066ff, #00aaff);
+      color: #fff;
+    }
+    #agent-card .btn-chat:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(0, 100, 255, 0.4); }
+    #agent-card .btn-hire {
+      background: rgba(255,255,255,0.08); color: #fff; border: 1px solid rgba(255,255,255,0.15);
+    }
+    #agent-card .btn-hire:hover { background: rgba(255,255,255,0.15); }
+
+    /* Chat panel */
+    #chat-panel {
+      position: fixed; bottom: -500px; left: 50%; transform: translateX(-50%);
+      width: 520px; max-width: 90vw; z-index: 25;
+      transition: bottom 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    #chat-panel.open { bottom: 20px; }
+    #chat-panel .chat-box {
+      background: rgba(10, 10, 30, 0.95); backdrop-filter: blur(20px);
+      border: 1px solid rgba(0, 200, 255, 0.2); border-radius: 16px;
+      overflow: hidden;
+    }
+    #chat-panel .chat-header {
+      padding: 14px 20px; border-bottom: 1px solid rgba(255,255,255,0.06);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    #chat-panel .chat-header span { color: #fff; font-weight: 600; font-size: 14px; }
+    #chat-panel .chat-header button {
+      background: none; border: none; color: rgba(255,255,255,0.4); cursor: pointer; font-size: 18px;
+    }
+    #chat-panel .chat-header button:hover { color: #fff; }
+    #chat-panel .chat-messages {
+      height: 220px; overflow-y: auto; padding: 16px 20px;
+    }
+    #chat-panel .chat-msg { margin-bottom: 10px; display: flex; }
+    #chat-panel .chat-msg.user { justify-content: flex-end; }
+    #chat-panel .chat-msg .bubble {
+      max-width: 75%; padding: 8px 14px; border-radius: 14px;
+      font-size: 13px; line-height: 1.5;
+    }
+    #chat-panel .chat-msg.agent .bubble {
+      background: rgba(0, 100, 255, 0.2); color: #d0e0ff;
+      border-bottom-left-radius: 4px;
+    }
+    #chat-panel .chat-msg.user .bubble {
+      background: rgba(0, 200, 100, 0.2); color: #c0ffd0;
+      border-bottom-right-radius: 4px;
+    }
+    #chat-panel .chat-input-wrap {
+      display: flex; padding: 12px 16px; gap: 8px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    #chat-panel .chat-input-wrap input {
+      flex: 1; padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.05); color: #fff; font-size: 13px; outline: none;
+    }
+    #chat-panel .chat-input-wrap input:focus { border-color: rgba(0, 150, 255, 0.5); }
+    #chat-panel .chat-input-wrap input::placeholder { color: rgba(255,255,255,0.3); }
+    #chat-panel .chat-input-wrap button {
+      padding: 10px 18px; border-radius: 10px; border: none;
+      background: linear-gradient(135deg, #0066ff, #00aaff); color: #fff;
+      font-weight: 600; cursor: pointer; font-size: 13px;
+    }
+    #chat-panel .chat-input-wrap button:hover { opacity: 0.9; }
+
+    /* Connect wallet button */
+    #wallet-btn {
+      position: fixed; top: 20px; right: 20px; z-index: 10;
+      padding: 8px 18px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.15);
+      background: rgba(0,0,0,0.5); backdrop-filter: blur(10px);
+      color: #fff; font-size: 13px; cursor: pointer;
+      transition: all 0.2s;
+    }
+    #wallet-btn:hover { background: rgba(255,255,255,0.1); border-color: rgba(0, 200, 255, 0.5); }
+    #wallet-btn.connected { border-color: #00ff88; color: #00ff88; }
+
+    /* Legend */
+    #legend {
+      position: fixed; bottom: 20px; right: 20px; z-index: 10;
+      color: rgba(255,255,255,0.5); font-size: 11px; text-align: right; line-height: 1.8;
+    }
+    #legend .dot {
+      display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px;
+    }
+    #legend .dot.online { background: #00ff88; box-shadow: 0 0 8px #00ff88; }
+    #legend .dot.busy { background: #ffaa00; box-shadow: 0 0 8px #ffaa00; }
+    #legend .dot.offline { background: rgba(255,255,255,0.2); }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+
+  <div id="hud">
+    <h1>✦ 原宇宙</h1>
+    <div class="subtitle">AI AGENT EARTH · POWERED BY ERC-8004</div>
+  </div>
+
+  <button id="wallet-btn">◈ Connect Wallet</button>
+
+  <div id="stats"></div>
+
+  <div id="legend">
+    <div><span class="dot online"></span> Online</div>
+    <div><span class="dot busy"></span> Busy</div>
+    <div><span class="dot offline"></span> Offline</div>
+  </div>
+
+  <div id="agent-card">
+    <button class="close" id="close-card">✕</button>
+    <div class="name" id="ac-name">—</div>
+    <div class="role" id="ac-role">—</div>
+    <div class="reputation" id="ac-rep">★ 0.0</div>
+    <div class="section">
+      <div class="section-title">About</div>
+      <div id="ac-desc" style="font-size:13px;color:rgba(255,255,255,0.7);line-height:1.5;">—</div>
+    </div>
+    <div class="section">
+      <div class="section-title">Skills</div>
+      <div class="skills" id="ac-skills"></div>
+    </div>
+    <div class="section">
+      <div class="section-title">On-Chain Identity</div>
+      <div class="onchain-id" id="ac-onchain">—</div>
+    </div>
+    <div class="actions">
+      <button class="btn btn-chat" id="btn-chat">💬 Chat</button>
+      <button class="btn btn-hire" id="btn-hire">⚡ Hire (0.01 USDC)</button>
+    </div>
+  </div>
+
+  <div id="chat-panel">
+    <div class="chat-box">
+      <div class="chat-header">
+        <span id="chat-title">💬 Chat with Agent</span>
+        <button id="close-chat">✕</button>
+      </div>
+      <div class="chat-messages" id="chat-msgs">
+        <div class="chat-msg agent">
+          <div class="bubble">Hello! I'm ready to help. What do you need?</div>
+        </div>
+      </div>
+      <div class="chat-input-wrap">
+        <input id="chat-input" type="text" placeholder="Type a message..." />
+        <button id="chat-send">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+{
+  "name": "originverse",
+  "version": "1.0.0",
+  "private": true,
+  "description": "OriginVerse - AI Agent Earth for LegionSpace Hackathon 6",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd mcp-servers/earth-data-mcp && node server.js",
+    "build": "cd frontend && npm run build",
+    "start": "cd frontend && npm run preview"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0"
+  }
+}
